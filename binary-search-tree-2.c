@@ -198,7 +198,90 @@ int insert(Node* head, int key){
 
 //노드 삭제 - 리프노드삭제가 아니기 때문에 자식이 있는 노드 삭제등, 여러 케이스 고려해야함
 int deleteNode(Node* head, int key){
+	//트리에 내용이 없을 때(루트노드 안만들어짐)
+	if (head->left == NULL) {
+		printf("\n Tree is empty!!\n");
+		return 0; // 함수종료
+	}
+	
 
+	Node* ptr = head->left; // 이동하며 입력한 key와 같은 노드를 찾을 구조체 포인터 ptr
+	Node* parent = NULL; // ptr이동하기전에 이전 루트를 저장해 놓을 구조체 포인터 parent
+
+
+	// 먼저 ptr을 이동시키며 입력한 key와 같은 key값을 갖는 노드를 찾음
+	while((ptr != NULL)&&(ptr->key != key)) { //
+	//key가 없어 ptr이 NULL 가리키거나, 일치하는 노드를 찾을 때 까지 반복
+		parent = ptr; //ptr 이동 직전 부모노드 경로 저장
+			if(ptr->key > key) //입력한 키가 현재 ptr의 키보다 작을 때
+				ptr = ptr->left; //ptr은 왼쪽 자식노드로 이동 
+			else //클 때
+				ptr = ptr->right;//ptr은 오른쪽 자식노드로 이동 
+	}
+	// 만일 위의 반복에서 ptr==NULL 로 반복문 탈출했다면 = 삭제하려는 key값을 가진 노드 없음
+	if(ptr == NULL)
+	{
+		printf("No node for key [%d]\n ", key); //안내문 출력
+		return -1; //함수 종료
+	}
+	// 1번 경우 = 삭제하려는 노드가 리프노드일 때  
+	if(ptr->left == NULL && ptr->right == NULL){ //양쪽 자식노드가 모두 없다면 True
+		//저장해둔 ptr 부모노드가 NULL일때(초기값) = ptr이 루트노드이면서 리프노드일떄
+		if(parent == NULL) { 
+			head->left = NULL;
+		} //일반적인 리프노드일 때
+		else {
+			if(parent->left == ptr) //삭제하려는 노드가 왼쪽 자식 노드이면
+				parent->left = NULL; //왼쪽 노드 링크 삭제
+			else //삭제하려는 노드가 오른쪽 자식 노드이면
+				parent->right = NULL;//오른쪽 노드 링크 삭제
+		}
+		free(ptr); //삭제하려는 ptr위치 동적메모리 해제
+		return 1;  //함수종료
+	}
+	// 2번 경우 = 삭제하려는 노드 자식노드가 하나 일 때 ->자식노드를 삭제할 노드로 올려줌
+	if ((ptr->left == NULL || ptr->right == NULL)){ // 자식노드가 없거나 하나있을때 True
+	// 자식노드가 없는 경우는 1번 경우에서 걸러짐
+		Node* link; // 연결용 구조체 포인터 link
+		if (ptr->left != NULL) //ptr의 왼쪽 자식노드가 있을 때
+			link = ptr->left;  //왼쪽 자식노드 link에 저장
+		else //ptr의 오른쪽 자식노드가 있을 때
+			link = ptr->right; //오른쪽 자식노드 link에 저장
+		//저장해둔 ptr 부모노드가 NULL일때(초기값) = ptr이 루트노드이면서 자식이 하나 있을 때
+		if(parent == NULL){
+			head->left= link; //저장된 링크를 헤드노드 다음의 루트노드로 연결해줌
+		}
+		else { // 일반적인 자식이 하나있는 노드 삭제일때
+			if(parent->left == ptr) //저장해둔 ptr부모 노드의 왼쪽 자식이 ptr일때
+				parent->left = link; //저장해둔 링크는 ptr 부모노드의 왼쪽 노드로 연결
+			else //저장해둔 ptr부모 노드의 오른쪽 자식이 ptr일때
+				parent->right = link; //저장해둔 링크는 ptr 부모노드의 오른쪽 노드로 연결
+		}
+		free(ptr); //삭제하려는 ptr위치 동적메모리 해제
+		return 1;  //함수종료
+	}
+	// 3번 경우 = 삭제하려는 노드ptr 자식노드가 둘일 때
+	// ptr 왼쪽 서브트리에서가장 큰값 혹은 오른쪽 서브트리에서 가장작은값으로 ptr을 대체한다
+	// 오른쪽 서브트리에서 가장 작은값 사용하는 경우 사용
+
+	Node* Newnode = ptr->right; //오른쪽 서브트리에서 가장 작은 값 찾을 구조체 포인터
+	parent = ptr; //ptr 현재 위치 저장 ->ptr의 key값만 대체할 예정
+	//서브트리에서 가장 작은 값은 가장 아래쪽의 좌측 자식 노드를 찾아가야한다
+	while(Newnode->left != NULL){ // Newnode의 좌측 자식노드가 NULL일 때까지 반복 = Newnode가 가장 작음
+		parent = Newnode; //Newnode 이동시키기 전 노드위치 저장
+		Newnode = Newnode->left; //Newnode는 좌측 자식노드로 이동
+	}
+
+	if (parent->right == Newnode) // 위의 반복문이 돌지못헀을 때 => Newnode의 초기값이 가장 큰 값일 때
+		parent->right = Newnode->right; //Newnode 부모 오른쪽 노드에 Newnode의 오른쪽 자식노드에 연결되있었던 것 연결
+	else //위의 반복문이 돌아 왼쪽 자식노드가 없는 Newnode까지 이동한 상태일때
+		parent->left = Newnode->right; //Newnode 부모 노드 왼쪽 자식노드에 Newnode 가 가진 오른쪽 자식노드 연결
+	// 오른쪽 자식노드가 NULL이면 NULL연결되어 큰 영향 미치지 않음
+
+	ptr->key = Newnode->key; //원래 ptr 삭제하려던 ptr노드 키값만 대체할 노드 key로 바꿔줌
+
+	free(Newnode); //삭제하려는 ptr위치 동적메모리 해제
+	return 1;      //함수종료
 }
 
 //재귀형식으로 동적 메모리 해제를 위한 함수
