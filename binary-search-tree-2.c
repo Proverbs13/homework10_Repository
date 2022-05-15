@@ -132,10 +132,28 @@ void iterativeInorder(Node* node){ //매개변수로 루트노드 받아옴
 	return ; //함수종료
 }
 
-
 //레벨 순회 - 원형 큐 사용
-void levelOrder(Node* ptr){
+void levelOrder(Node* ptr){//매개변수로 루트노드 받아옴
+	if(ptr==NULL){ //트리가 비어있다면
+		printf("your tree is empty."); //안내메세지 출력
+		return ;// 함수종료
+	}
+	enQueue(ptr); //루트노드를 큐에 집어넣음
 
+	//무한루프 돌면서 레벨순회 순서대로 큐에 집어넣고,빼주면서 출력함
+	//큐가 선입 선출이므로 미리 큐에 넣은 낮은 레벨 노드들이 먼저 빠져나오며 출력 
+	while(1){ 
+		ptr = deQueue(); //큐에서 의미상 삭제된 위치 구조체 포인터 ptr에 대입
+		if(ptr!=NULL){ //ptr이 NULL이 아닐때= 큐가 비지 않았을 떄
+			printf(" [%d] ", ptr->key); //디큐한 ptr 출력
+			if(ptr->left != NULL) //현재ptr의 왼쪽 자식노드가 있을 때
+				enQueue(ptr->left); // 큐에 집어넣음
+			if(ptr->right !=NULL) //현재ptr의 오른쪽 자식노드가 있을 때
+				enQueue(ptr->right);// 큐에 집어넣음
+		}
+		else //큐가 비어서 더이상 출력할 것이 없을 때
+			break; //무한루프 종료
+	}
 }
 
 //트리에 노드 추가 
@@ -226,14 +244,24 @@ void push(Node* aNode){
 	//받아온 구조체 포인터 탑 위치에 대입
 }
 
-// 원형큐 인큐 함수
+// 원형큐 디큐 함수
 Node* deQueue(){
-
+	//큐가 비어있을 떄
+	if (front == rear) {
+		return NULL; //NULL 반환
+	}
+	//front 증가시켜 front위치 요소 의미상으로 큐에서 삭제
+	front = (front + 1) % MAX_QUEUE_SIZE; //modulo 연산이용 front 1칸증가
+	return queue[front]; //front가 증가되어 큐에서 삭제된위치 요소(구조체 포인터) 반환 
 }
 
-//원형 큐 디큐 함수
-void enQueue(Node* aNode)
-{
-	
+//원형큐 인큐 함수
+void enQueue(Node* aNode){ 	//구조체 포인터를 매개변수로 받아옴
+	//큐가 꽉 찼을 때 = 증가시킨 rear가 front 일 때
+	if (front == (rear + 1) % MAX_QUEUE_SIZE) {
+		return; //함수종료
+	} 
+	rear = (rear + 1) % MAX_QUEUE_SIZE; //modulo 연산이용 rear 1칸증가
+	queue[rear] = aNode; //증가시킨 rear위치에 받아온 구조체 포인터 넣어줌
 }
 
